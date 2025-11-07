@@ -2,9 +2,14 @@ from django.http import JsonResponse
 import logging
 # from django_ip_geolocation.decorators import with_ip_geolocation
 from django.core.cache import cache
+from dotenv import load_dotenv
+import requests
+import os
 
 from .models import RequestLog, BlockedIP
 
+
+load_dotenv()
 
 # Basic configuration (optional, but good for simple cases)
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -25,7 +30,20 @@ def get_client_ip(request):
 # get ip_address location addeded by django_ip_geolocation middleware
 def get_location(request):
     # get the location object
-    location = request.geolocation
+    # location = request.geolocation # could not resolve the django_ip_geolocation.backends.IPGeolocationAPI to api.ipapi.com
+
+    # using direct request
+    ip_addr = get_client_ip(request) # could have passed the ip but i need to resolve the above at a later time
+
+    # localhost will not resolve
+    # ip_addr = '8.8.8.8' # google.com ip for testing only
+
+    url = "https://api.ipapi.com/{ip}?access_key={access_key}"
+    access_key = os.getenv('IPAPI_ACCESS_KEY', '')
+
+    response = requests.get(url.format(ip=ip_addr, access_key=access_key))
+
+    location = response.json()
 
     # cache result for 1hour
     cache.set('location', location, timeout=60 * 60 * 24)

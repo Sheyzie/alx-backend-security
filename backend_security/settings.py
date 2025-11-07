@@ -11,6 +11,10 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -31,15 +35,23 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    # Django default apps
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    # my app
     'ip_tracking',
-    'django_ip_geolocation',
-    'ratelimit',
+
+    # third party apps
+    # 'django_ip_geolocation', # could not resolve backend to ipapi.com (used request() in middleware)
+    'django_ratelimit',
+    'rest_framework',
+    'rest_framework.authtoken',
+    'drf_yasg',
 ]
 
 MIDDLEWARE = [
@@ -50,8 +62,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'django_ip_geolocation.middleware.IpGeolocationMiddleware',
-    'ip_tracking.middleware.LogRequestDetail',
+    # 'django_ip_geolocation.middleware.IpGeolocationMiddleware', # Third party middle ware for geo-location
+    'ip_tracking.middleware.LogRequestDetail', # Custom Middleware
 ]
 
 ROOT_URLCONF = 'backend_security.urls'
@@ -128,18 +140,20 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # django-ip-geolocation setting
 # https://pypi.org/project/django-ip-geolocation/
-IP_GEOLOCATION_SETTINGS = {
-    'BACKEND': 'django_ip_geolocation.backends.IPGeolocationAPI',
-    'BACKEND_API_KEY': '',
-    'BACKEND_EXTRA_PARAMS': {},
-    'BACKEND_USERNAME': '',
-    'RESPONSE_HEADER': 'X-IP-Geolocation',
-    'ENABLE_REQUEST_HOOK': True,
-    'ENABLE_RESPONSE_HOOK': True,
-    'ENABLE_COOKIE': False,
-    'FORCE_IP_ADDR': None,
-    'USER_CONSENT_VALIDATOR': None
-}
+
+# IP_GEOLOCATION_SETTINGS = {
+#     'BACKEND': 'django_ip_geolocation.backends.IPGeolocationAPI',
+#     'BACKEND_API_KEY': os.getenv('IPAPI_ACCESS_KEY'),
+#     'BACKEND_EXTRA_PARAMS': {},
+#     'BACKEND_USERNAME': '',
+#     'RESPONSE_HEADER': 'X-IP-Geolocation',
+#     'ENABLE_REQUEST_HOOK': True,
+#     'ENABLE_RESPONSE_HOOK': True,
+#     'ENABLE_COOKIE': False,
+#     # 'FORCE_IP_ADDR': None,
+#     'FORCE_IP_ADDR': '8.8.8.8', # Only for testing as localhost cannot be resolved
+#     'USER_CONSENT_VALIDATOR': None
+# }
 
 # Redis Cache Setting
 CACHES = {
@@ -156,3 +170,13 @@ CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'UTC'
+
+
+# Django Rest Framework Auth Settings
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ]
+}
