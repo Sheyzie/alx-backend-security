@@ -35,8 +35,10 @@ def get_location(request):
     # using direct request
     ip_addr = get_client_ip(request) # could have passed the ip but i need to resolve the above at a later time
 
-    # localhost will not resolve
-    # ip_addr = '8.8.8.8' # google.com ip for testing only
+    if ip_addr == '127.0.0.1': # localhost will not resolve
+        ip_addr = '8.8.8.8'  # ip_addr = '8.8.8.8' # google.com ip for testing only
+    
+   
 
     url = "https://api.ipapi.com/{ip}?access_key={access_key}"
     access_key = os.getenv('IPAPI_ACCESS_KEY', '')
